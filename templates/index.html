@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MP3 快捷上传工具</title>
+    <!-- 新增：网页图标设置，使用 Flask 的 url_for 引用 static 文件夹中的文件 -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -291,12 +293,12 @@
                         <li>
                             <div class="file-links-container">
                                 <p>
-                                    {# --- 关键修改：使用 url_for 生成下载链接，包含 /uploads/ 前缀 --- #}
+                                    {# 更新：使用第一个配置的下载地址 #}
                                     <a href="{{ url_for('uploaded_file', filename=file, _external=True, _scheme='http', _host=download_host_1, _port=download_port_1) }}" target="_blank">{{ file }}</a>
                                     <span class="domain-tag">({{ download_host_1 }}:{{ download_port_1 }})</span>
                                 </p>
                                 <p>
-                                    {# --- 关键修改：使用 url_for 生成下载链接，包含 /uploads/ 前缀 --- #}
+                                    {# 更新：使用第二个配置的下载地址 #}
                                     <a href="{{ url_for('uploaded_file', filename=file, _external=True, _scheme='http', _host=download_host_2, _port=download_port_2) }}" target="_blank">{{ file }}</a>
                                     <span class="domain-tag">({{ download_host_2 }}:{{ download_port_2 }})</span>
                                 </p>
