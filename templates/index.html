@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP3 快捷上传工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #eef2f7;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 10vh; /* 调整为更小的高度，避免页面过长 */
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
+        h1 {
+            color: #007bff;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        h2 {
+            color: #007bff;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* 调整间距 */
+            margin-bottom: 20px;
+        }
+        input[type="file"], input[type="text"], input[type="password"] { /* 统一样式 */
+            border: 1px solid #ced4da;
+            padding: 12px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            font-size: 1em;
+            width: calc(100% - 24px); /* 减去 padding */
+            box-sizing: border-box; /* 确保 padding 不会增加总宽度 */
+        }
+        input[type="file"] {
+            cursor: pointer;
+        }
+        input[type="file"]::file-selector-button {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 15px;
+            transition: background-color 0.2s ease;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: #5a6268;
+        }
+        button[type="submit"] {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.2s ease;
+        }
+        button[type="submit"]:hover {
+            background-color: #218838;
+        }
+        .messages {
+            margin-top: 25px;
+        }
+        .message {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            word-wrap: break-word;
+            text-align: left;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .message a:hover {
+            text-decoration: underline;
+        }
+        .file-list ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+        .file-list li {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            display: flex;
+            flex-wrap: wrap; /* 允许元素换行 */
+            justify-content: space-between;
+            align-items: center;
+            word-break: break-all;
+        }
+        /* 调整链接部分以适应多链接显示 */
+        .file-list .file-links-container {
+            flex-grow: 1; /* 占据可用空间 */
+            margin-right: 10px; /* 与删除表单的间距 */
+            /* 确保内部链接垂直排列，并控制间距 */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* 左对齐链接 */
+        }
+        .file-list .file-links-container p {
+            margin: 0; /* 移除段落默认外边距 */
+            padding: 0;
+        }
+        .file-list .file-links-container p + p { /* 第二个段落顶部留一点空隙 */
+            margin-top: 5px;
+        }
+        .file-list li a {
+            color: #007bff;
+            text-decoration: none;
+            /* margin-right: 10px; 原来的样式，现在由父容器的flex-grow和margin-right控制 */
+        }
+        .file-list li a:hover {
+            text-decoration: underline;
+        }
+        .file-list li .domain-tag { /* 小字域名样式 */
+            font-size: 0.8em;
+            color: #666;
+            margin-left: 5px; /* 域名与文件名之间的间距 */
+        }
+        .delete-form {
+            display: flex; /* 让密码输入框和按钮在一行 */
+            gap: 10px; /* 密码输入框和按钮之间的间距 */
+            margin-top: 5px; /* 在小屏幕上，让删除表单与文件名有点距离 */
+            flex-shrink: 0; /* 防止被压缩 */
+        }
+        .delete-form input[type="password"] {
+            width: 120px; /* 调整密码输入框宽度 */
+            padding: 5px 8px;
+            font-size: 0.9em;
+            border-color: #ccc;
+        }
+        .delete-form button {
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s ease;
+        }
+        .delete-form button:hover {
+            background-color: #c82333;
+        }
+        .footer {
+            margin-top: 30px;
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        /* 进度条样式 */
+        #uploadProgressArea {
+            margin-top: 20px;
+        }
+        #progressBarContainer {
+            display: none; /* 默认隐藏 */
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        #progressBarFill {
+            width: 0%;
+            height: 25px;
+            background-color: #4CAF50; /* 绿色 */
+            text-align: center;
+            line-height: 25px;
+            color: white;
+            border-radius: 5px;
+            transition: width 0.3s ease-in-out; /* 平滑过渡效果 */
+        }
+        #uploadMessage {
+            margin-top: 10px;
+            font-weight: bold;
+            display: none; /* 默认隐藏 */
+        }
+
+
+        /* 响应式调整 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .file-list li {
+                flex-direction: column; /* 小屏幕上垂直堆叠 */
+                align-items: flex-start;
+            }
+            .file-list .file-links-container {
+                margin-right: 0; /* 小屏幕上移除右边距 */
+                margin-bottom: 10px; /* 链接和删除表单之间留空 */
+                width: 100%; /* 占据整行 */
+            }
+            .file-list li a {
+                margin-bottom: 0; /* 链接之间由p标签控制 */
+                margin-right: 0;
+            }
+            .delete-form {
+                width: 100%;
+                justify-content: flex-end; /* 让删除按钮靠右 */
+            }
+            .delete-form input[type="password"] {
+                flex-grow: 1; /* 密码输入框占据更多空间 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MP3 快捷上传</h1>
+
+        {# 给表单一个ID，方便JS获取 #}
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+            <label for="file" style="display: none;">选择 MP3 文件:</label>
+            <input type="file" name="file" id="file" accept=".mp3" required>
+            <input type="text" name="custom_filename" placeholder="（可选）自定义文件名 (无需扩展名)" maxlength="100">
+            <button type="submit" id="uploadButton">上传文件</button>
+        </form>
+
+        {# 进度条和上传状态消息区域 #}
+        <div id="uploadProgressArea">
+            <div id="progressBarContainer">
+                <div id="progressBarFill">0%</div>
+            </div>
+            <div id="uploadMessage" class="message"></div>
+        </div>
+
+        {# 遍历并显示 Flask 的 flash 消息 (这些是服务器端重定向后才显示的) #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="messages">
+                    {% for category, message in messages %}
+                        <div class="message {{ category }}">
+                            {# 使用 safe 过滤器允许 message 中包含 HTML 内容 (例如直链的<a>标签) #}
+                            {{ message | safe }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <hr>
+
+        <h2>已上传的 MP3 文件</h2>
+        <div class="file-list">
+            {% if files %}
+                <ul>
+                    {% for file in files %}
+                        <li>
+                            <div class="file-links-container">
+                                <p>
+                                    {# 更新：使用第一个配置的下载地址 #}
+                                    <a href="http://{{ download_host_1 }}:{{ download_port_1 }}/{{ file }}" target="_blank">{{ file }}</a>
+                                    <span class="domain-tag">({{ download_host_1 }}:{{ download_port_1 }})</span>
+                                </p>
+                                <p>
+                                    {# 更新：使用第二个配置的下载地址 #}
+                                    <a href="http://{{ download_host_2 }}:{{ download_port_2 }}/{{ file }}" target="_blank">{{ file }}</a>
+                                    <span class="domain-tag">({{ download_host_2 }}:{{ download_port_2 }})</span>
+                                </p>
+                            </div>
+                            {# 删除文件的表单，包含密码输入框 #}
+                            <form action="{{ url_for('delete_file', filename=file) }}" method="post" class="delete-form">
+                                <input type="password" name="delete_password" placeholder="删除密码" required>
+                                <button type="submit" onclick="return confirm('确定要删除文件 {{ file }} 吗？此操作不可撤销！');">删除</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>还没有上传任何 MP3 文件。</p>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2024 MP3 Uploader. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadForm = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('file');
+            const uploadButton = document.getElementById('uploadButton');
+            const progressBarContainer = document.getElementById('progressBarContainer');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const uploadMessageDiv = document.getElementById('uploadMessage');
+            
+            // 获取 Flask 传递过来的最大文件大小 (MB)
+            const MAX_FILE_SIZE_MB = {{ max_file_size_mb | default(100) }}; // 如果 Flask 没有传递，默认为 100MB
+            const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+            uploadForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // 阻止表单默认提交行为
+
+                // 重置进度条和消息
+                progressBarContainer.style.display = 'none';
+                progressBarFill.style.width = '0%';
+                progressBarFill.textContent = '0%';
+                uploadMessageDiv.style.display = 'none';
+                uploadMessageDiv.className = 'message'; // 重置类名
+                uploadMessageDiv.innerHTML = ''; // 清空内容
+
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    uploadMessageDiv.style.display = 'block';
+                    uploadMessageDiv.className = 'message error';
+                    uploadMessageDiv.textContent = '请选择一个文件。';
+                    return;
+                }
+
+                // 客户端文件类型校验 (虽然服务器端也会校验，但前端提前提示用户更好)
+                const allowedExtensions = ['.mp3'];
+                const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+                if (!allowedExtensions.includes(fileExtension)) {
+                    uploadMessageDiv.style.display = 'block';
+                    uploadMessageDiv.className = 'message error';
+                    uploadMessageDiv.textContent = '只允许上传 MP3 文件。';
+                    return;
+                }
+
+                // 客户端文件大小校验
+                if (file.size > MAX_FILE_SIZE_BYTES) {
+                    uploadMessageDiv.style.display = 'block';
+                    uploadMessageDiv.className = 'message error';
+                    uploadMessageDiv.textContent = `文件大小超过限制 (${MAX_FILE_SIZE_MB}MB)。`;
+                    return;
+                }
+
+                // 创建 FormData 对象，包含所有表单字段
+                const formData = new FormData(uploadForm);
+
+                const xhr = new XMLHttpRequest();
+
+                // 设置上传进度事件监听
+                xhr.upload.onprogress = function(event) {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
+                        progressBarContainer.style.display = 'block'; // 显示进度条容器
+                        progressBarFill.style.width = percent + '%';
+                        progressBarFill.textContent = percent + '%';
+                        uploadButton.disabled = true; // 上传中禁用按钮
+                        uploadButton.textContent = '上传中...';
+                    }
+                };
+
+                // 设置请求完成事件监听
+                xhr.onload = function() {
+                    uploadButton.disabled = false; // 重新启用按钮
+                    uploadButton.textContent = '上传文件';
+                    progressBarContainer.style.display = 'none'; // 隐藏进度条
+
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        // 服务器响应成功，Flask 会进行重定向。
+                        // 由于我们使用了 XHR，浏览器不会自动跳转，所以需要手动跳转或重新加载页面。
+                        // 跳转到首页，让Flask的flash消息显示出来
+                        window.location.href = '/'; 
+                    } else {
+                        // 处理服务器返回的错误 (例如，文件大小超限、类型不符等 Flask 内部错误)
+                        // 通常 Flask 会通过 flash 消息和重定向来处理这些错误。
+                        // 但如果XHR请求本身失败（比如服务器返回500），这里可以显示通用错误。
+                        uploadMessageDiv.style.display = 'block';
+                        uploadMessageDiv.className = 'message error';
+                        uploadMessageDiv.innerHTML = '上传失败：服务器处理文件时发生错误或文件不符合要求。';
+                        // 也可以选择在短时间后刷新页面，以确保获取到服务器可能设置的flash消息
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000); 
+                    }
+                };
+
+                // 设置请求错误事件监听 (网络问题等)
+                xhr.onerror = function() {
+                    uploadButton.disabled = false; // 重新启用按钮
+                    uploadButton.textContent = '上传文件';
+                    progressBarContainer.style.display = 'none'; // 隐藏进度条
+                    uploadMessageDiv.style.display = 'block';
+                    uploadMessageDiv.className = 'message error';
+                    uploadMessageDiv.textContent = '网络错误，文件上传失败。请检查网络连接。';
+                };
+
+                // 发送请求
+                xhr.open('POST', uploadForm.action, true); // 使用表单的 action 属性作为 URL
+                xhr.send(formData);
+            });
+        });
+    </script>
+</body>
+</html>
