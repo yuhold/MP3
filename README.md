@@ -1,6 +1,6 @@
 # 🚀 MP3 快捷上传与直链分享工具
 
-一个轻量级的 Flask 应用，提供 MP3 文件的快速上传、自定义文件名、多直链下载选择，并支持密码保护的文件删除功能。
+基于 Flask 构建的轻量级应用，旨在简化 MP3 文件的上传、管理和直链分享流程。它提供自定义文件名、随机文件名生成、双直链下载以及安全的文件删除功能。
 
 **GitHub 仓库**: [yuhold/MP3](https://github.com/yuhold/MP3)
 
@@ -32,20 +32,25 @@
     cd MP3
     ```
 
-2.  **创建虚拟环境 (推荐)**:
-    ```bash
-    python -m venv venv
-    # Windows
-    venv\Scripts\activate
-    # macOS/Linux
-    source venv/bin/activate
-    ```
+2.  **安装依赖 (推荐使用自动化脚本)**:
+    为了方便在 Windows 环境下快速设置，我们提供了一个批处理脚本来自动创建 Python 虚拟环境并安装所有依赖。
 
-3.  **安装依赖**:
-    ```bash
-    pip install Flask
-    ```
-    *(本项目主要依赖 Flask，Werkzeug、configparser 等是 Python 内置或 Flask 依赖项)*
+    *   **如果您是 Windows 用户**:
+        在项目根目录下，**双击运行 `install_dependencies.bat` 文件**。
+        脚本会自动创建 `venv` 虚拟环境并安装 `Flask`。
+
+    *   **如果您是 macOS/Linux 用户或倾向于手动操作**:
+        ```bash
+        # 创建并激活虚拟环境 (强烈推荐)
+        python -m venv venv
+        # Windows
+        venv\Scripts\activate
+        # macOS/Linux
+        source venv/bin/activate
+
+        # 安装依赖
+        pip install Flask
+        ```
 
 ## ⚙️ 配置说明
 
@@ -82,7 +87,10 @@ DOWNLOAD_PORT_2 = 5000
 SECRET_KEY = 请修改此密钥，生产环境请使用长且随机的字符串
 # Flask 应用的秘密密钥，用于会话管理和消息签名。
 # 务必修改为一个长、复杂、随机的字符串，不要使用默认值！
-# 可以使用 Python 生成一个：import os; os.urandom(24).hex()
+# 您可以使用项目根目录下的 `generate_secret_key.py` 脚本生成一个：
+# 运行以下命令 (请确保已激活虚拟环境)：
+# python generate_secret_key.py
+# 将脚本输出的密钥复制到此处。
 
 [UPLOAD_SETTINGS]
 MAX_FILE_SIZE_MB = 100
@@ -98,7 +106,11 @@ DELETE_PASSWORD = 请修改此密码
 ## 🚀 使用方法
 
 1.  **启动服务器**:
-    在项目根目录下，运行：
+    首先，您需要激活之前创建的虚拟环境：
+    *   **Windows**: `venv\Scripts\activate`
+    *   **macOS/Linux**: `source venv/bin/activate`
+
+    激活后，在项目根目录下，运行：
     ```bash
     python server.py
     ```
