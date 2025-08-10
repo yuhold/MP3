@@ -2,7 +2,7 @@
 import os
 import configparser
 from flask import Flask, request, send_from_directory, render_template, redirect, url_for, flash
-from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename # 仍然保留，因为它在其他地方可能有用，例如 secure_filename 在 delete_file 中依然被使用
 import random
 import string
 import re # <-- 新增：导入 re 模块
@@ -195,6 +195,7 @@ def upload_file():
 
     try:
         file.save(filepath)
+        # --- 关键修改：url_for 会自动根据路由生成路径，现在路由已包含 /uploads/ ---
         download_url_1 = url_for('uploaded_file', filename=filename, _external=True, _scheme='http', _host=DOWNLOAD_HOST_1, _port=DOWNLOAD_PORT_1)
         download_url_2 = url_for('uploaded_file', filename=filename, _external=True, _scheme='http', _host=DOWNLOAD_HOST_2, _port=DOWNLOAD_PORT_2)
 
@@ -217,20 +218,25 @@ def upload_file():
         return redirect(url_for('index'))
 
 # --- 路由：文件下载 (提供静态文件服务) ---
-@app.route('/<filename>')
+# --- 关键修改：路由路径改为 /uploads/<filename> ---
+@app.route('/uploads/<filename>')
 def uploaded_file(filename):
     """
     提供已上传文件的下载服务。
-    为了安全，这里仍然使用 werkzeug.utils.secure_filename 来处理传入的 URL 文件名，
-    以防止用户在 URL 中构造恶意路径。
     """
-    s_filename = secure_filename(filename) # 对于从URL中获取的文件名，仍使用 secure_filename
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], s_filename)
+    # --- 关键修改：不再对传入的 filename 使用 secure_filename ---
+    # 因为 sanitize_filename 已经在上传时处理了文件名，并且允许中文。
+    # secure_filename 可能改变中文文件名，导致无法找到文件。
+    # send_from_directory 内部已经有安全检查。
+    target_filename = filename 
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], target_filename)
 
     if not os.path.exists(filepath):
+        # 打印日志以便调试
+        print(f"DEBUG: 文件 '{target_filename}' 在 '{app.config['UPLOAD_FOLDER']}' 中未找到。完整路径尝试: {filepath}")
         return "请求的文件不存在。", 404
 
-    return send_from_directory(app.config['UPLOAD_FOLDER'], s_filename)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], target_filename)
 
 # --- 路由：文件删除 (需要密码鉴权) ---
 @app.route('/delete/<filename>', methods=['POST'])
@@ -243,7 +249,9 @@ def delete_file(filename):
         flash('删除密码不正确！', 'error')
         return redirect(url_for('index'))
 
-    s_filename = secure_filename(filename) # 对于从URL中获取的文件名，仍使用 secure_filename
+    # 这里继续使用 secure_filename，因为它主要用于防止路径遍历，
+    # 并且 deletion 是一个敏感操作，即使文件名被修改，也能防止误删或恶意删除。
+    s_filename = secure_filename(filename) 
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], s_filename)
 
     if os.path.exists(filepath) and allowed_file(s_filename):
