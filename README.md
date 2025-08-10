@@ -1,5 +1,3 @@
----
-
 # 🚀 MP3 快捷上传与直链分享工具
 
 一个轻量级的 Flask 应用，提供 MP3 文件的快速上传、自定义文件名、多直链下载选择，并支持密码保护的文件删除功能。
@@ -159,5 +157,3 @@ DELETE_PASSWORD = 请修改此密码
 ## 📄 许可证
 
 本项目采用 MIT 许可证。详见 [LICENSE](https://github.com/yuhold/MP3/blob/main/LICENSE) 文件。
-
----
